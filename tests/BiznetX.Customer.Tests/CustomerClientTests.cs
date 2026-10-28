@@ -9,7 +9,7 @@ namespace BiznetX.Customer.Tests;
 
 public sealed class CustomerClientTests
 {
-    private const string TestKey = "test-project-key-with-at-least-32-characters";
+    private const string TEST_KEY = "test-project-key-with-at-least-32-characters";
 
     [Fact]
     public async Task Identify_uses_versioned_route_auth_and_camel_case_json()
@@ -23,7 +23,7 @@ public sealed class CustomerClientTests
         Assert.Equal("user@42", result.ExternalId);
         Assert.Equal(HttpMethod.Put, handler.Method);
         Assert.Equal("https://customer.example.test/prefix/v1/customers/user%4042", handler.Uri!.AbsoluteUri);
-        Assert.Equal($"Bearer {TestKey}", handler.Authorization);
+        Assert.Equal($"Bearer {TEST_KEY}", handler.Authorization);
         var body = JsonSerializer.Deserialize<JsonElement>(handler.Body!);
         Assert.Equal("gold", body.GetProperty("attributes").GetProperty("tier").GetString());
         Assert.Equal("person@example.test", body.GetProperty("email").GetString());
@@ -70,7 +70,7 @@ public sealed class CustomerClientTests
     public void Invalid_base_urls_are_rejected(string url)
     {
         var services = new ServiceCollection();
-        services.AddBxCustomer(options => { options.BaseAddress = new Uri(url); options.ApiKey = TestKey; });
+        services.AddBxCustomer(options => { options.BaseAddress = new Uri(url); options.ApiKey = TEST_KEY; });
         using var provider = services.BuildServiceProvider();
         Assert.Throws<OptionsValidationException>(() => provider.GetRequiredService<ICustomerClient>());
     }
@@ -96,7 +96,7 @@ public sealed class CustomerClientTests
     private static ServiceProvider CreateServices(RecordingHandler handler)
     {
         var services = new ServiceCollection();
-        services.AddBxCustomer(options => { options.BaseAddress = new Uri("https://customer.example.test/prefix/"); options.ApiKey = TestKey; })
+        services.AddBxCustomer(options => { options.BaseAddress = new Uri("https://customer.example.test/prefix/"); options.ApiKey = TEST_KEY; })
             .ConfigurePrimaryHttpMessageHandler(() => handler);
         return services.BuildServiceProvider();
     }

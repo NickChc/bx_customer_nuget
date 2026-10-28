@@ -10,3 +10,11 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 4
 csharp_style_namespace_declarations = file_scoped:warning
+
+dotnet_naming_rule.constant_fields.symbols = constant_fields
+dotnet_naming_rule.constant_fields.style = upper_snake_case
+dotnet_naming_rule.constant_fields.severity = warning
+dotnet_naming_symbols.constant_fields.applicable_kinds = field
+dotnet_naming_symbols.constant_fields.required_modifiers = const
+dotnet_naming_style.upper_snake_case.capitalization = all_upper
+dotnet_naming_style.upper_snake_case.word_separator = _
