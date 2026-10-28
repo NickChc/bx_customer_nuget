@@ -1,0 +1,12 @@
+image: mcr.microsoft.com/dotnet/sdk:8.0
+stages: [verify]
+verify:
+  stage: verify
+  script:
+    - dotnet restore tests/BiznetX.Customer.Tests --locked-mode
+    - dotnet test tests/BiznetX.Customer.Tests --no-restore -c Release --logger trx --results-directory TestResults
+    - dotnet pack src/BiznetX.Customer -c Release --no-restore -o artifacts
+  artifacts:
+    when: always
+    paths: [TestResults/, artifacts/]
+    expire_in: 7 days
