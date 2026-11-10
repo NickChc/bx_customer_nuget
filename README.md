@@ -30,7 +30,7 @@ Base URLs must end in `/` and use HTTPS except on loopback during local developm
 
 Customer attributes merge at the top level; explicit null attribute values remove those keys. Omitted attributes/email remain unchanged. Email clearing is not yet supported. JSON objects are limited to 16 KiB and 100 top-level properties. Event IDs are unique per project. Repeating the same payload returns `Duplicate = true`; changing content returns HTTP 409. Identify updates are safe to retry as assignments, but concurrent updates to the same attribute use last-write-wins.
 
-The SDK does not silently retry. Use a durable application outbox; reuse the event ID, timestamp and properties on timeouts, 429s and transient server errors. Inspect `CustomerApiException.StatusCode`, `Detail`, and `TraceId`. Do not retry validation/authentication/conflict responses unchanged.
+The SDK does not silently retry. Use a durable application outbox; reuse the event ID, timestamp and properties on timeouts, 429s and transient server errors. Inspect `CustomerApiException.StatusCode`, `Detail`, and `TraceId`. Do not retry validation/authentication/conflict responses unchanged. A permanently fenced customer returns HTTP 410 for identify and event submission, including old event retries. Stop reporting that identity; retrying or choosing a new event UUID does not remove the block. The SDK preserves 410 in `CustomerApiException` and performs no automatic retry. The backend processing-fence foundation is internal; owner erasure submission and payload scrubbing are not available yet.
 
 ## Build, test and package
 

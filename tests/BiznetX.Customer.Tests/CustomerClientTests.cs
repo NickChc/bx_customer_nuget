@@ -54,6 +54,32 @@ public sealed class CustomerClientTests
         Assert.Equal("Use the original payload.", exception.Detail);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Permanent_processing_block_preserves_410_and_never_retries(bool track)
+    {
+        const string TITLE = "Customer processing is permanently blocked.";
+        var calls = 0;
+        using var handler = new RecordingHandler(_ =>
+        {
+            calls++;
+            return new HttpResponseMessage(HttpStatusCode.Gone)
+            { Content = JsonContent.Create(new { status = 410, title = TITLE, traceId = "processing-block-trace" }) };
+        });
+        using var services = CreateServices(handler);
+        var client = services.GetRequiredService<ICustomerClient>();
+        var exception = await Assert.ThrowsAsync<CustomerApiException>(async () =>
+        {
+            if (track) await client.TrackAsync(new(Guid.NewGuid(), "user-1", "signup"));
+            else await client.IdentifyAsync("user-1", new());
+        });
+        Assert.Equal(HttpStatusCode.Gone, exception.StatusCode);
+        Assert.Equal(TITLE, exception.Message);
+        Assert.Equal("processing-block-trace", exception.TraceId);
+        Assert.Equal(1, calls);
+    }
+
     [Fact]
     public async Task Non_json_errors_still_expose_http_status()
     {
