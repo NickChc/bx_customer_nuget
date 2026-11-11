@@ -3,6 +3,8 @@ stages: [verify]
 verify:
   stage: verify
   script:
+    - dotnet tool restore
+    - dotnet csharpier src tests --check --no-cache
     - dotnet restore tests/BiznetX.Customer.Tests --locked-mode
     - dotnet test tests/BiznetX.Customer.Tests --no-restore -c Release --logger trx --results-directory TestResults
     - dotnet pack src/BiznetX.Customer -c Release --no-restore -o artifacts

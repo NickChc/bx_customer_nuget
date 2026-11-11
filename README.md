@@ -34,6 +34,20 @@ The SDK does not silently retry. Use a durable application outbox; reuse the eve
 
 ## Build, test and package
 
+Format C# after editing with the repository-local tool matching VS Code:
+
+```powershell
+dotnet tool restore
+dotnet csharpier src tests
+dotnet csharpier src tests --check --no-cache
+```
+
+CSharpier is pinned to 0.30.6 with four-space indentation, a 100-column target
+and LF line endings. Supported Markdown/JSON/YAML uses Prettier 3.7.4 with the
+repository's default configuration; pass explicit edited paths, for example
+`npx --yes prettier@3.7.4 --write README.md`. Exclude generated output and secrets.
+The SDK's existing constant naming convention remains unchanged.
+
 ```powershell
 dotnet restore BiznetX.Customer.slnx --locked-mode
 dotnet test BiznetX.Customer.slnx --no-restore

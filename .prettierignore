@@ -1,0 +1,7 @@
+**/bin/
+**/obj/
+**/TestResults/
+artifacts/
+**/packages.lock.json
+.env
+.env.*

@@ -1,5 +1,15 @@
 # SDK conventions
 
+After every edit, format C# with repository-local CSharpier 0.30.6, matching the
+user's VS Code save formatter: `dotnet tool restore`, then
+`dotnet csharpier <edited paths>`. Do not substitute dotnet format. Before a
+checkpoint run `dotnet csharpier src tests --check --no-cache`, then the full CI
+locked restore, Release tests and pack. Supported JSON/Markdown/YAML uses
+Prettier 3.7.4 with this repository's default `.prettierrc.json`, for example
+`npx --yes prettier@3.7.4 --write <edited paths>`. Exclude secrets, generated
+output and unsupported formats. Inspect changes and verify a second pass is
+unchanged; do not change behavior or the SDK's naming convention while formatting.
+
 Git checkpoints: at each logical, verified milestone, tell the user 'We should push this changes with commit name "<proposed commit title>"'. Wait for the user's agreement before committing and pushing that checkpoint. For changes spanning multiple repositories, identify the affected repositories and propose an appropriate title for each. Keep checkpoints small and coherent rather than accumulating unrelated local changes. Agreement applies to the proposed checkpoint, not future pushes.
 
 Verify features with meaningful automated tests or reliable direct checks. For behavior the agent cannot reliably verify, tell the user "Before we move on you should try X, Y and Z" with concrete steps and expected results, and record pending manual verification in the shared PLAN.md. Do not claim unperformed checks passed or require redundant manual testing.
