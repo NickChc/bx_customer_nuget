@@ -1,20 +1,20 @@
 # SDK conventions
 
-Checkpoint workflow (user instruction, 2026-11-16): work through the selected group
-of checkpoints sequentially, respecting dependencies. Read each checkpoint's
+Checkpoint workflow (user instruction, 2026-11-16): work through ready checkpoints and groups
+sequentially, respecting dependencies. Read each checkpoint's
 requirements and acceptance criteria; implement it, add/update meaningful tests,
 run all required verification, fix failures, and review the diff for correctness,
 regressions and security before committing. Commit completed checkpoints locally
 without asking for confirmation, update the shared PLAN.md with status, commands,
-results and remaining gates, then continue automatically within the selected group.
+results and remaining gates, then continue automatically across ready groups.
 Do not push unless the user explicitly requests it. This supersedes the earlier
 per-checkpoint commit/push approval rule. Stop only for required human credentials,
 permissions or external decisions; an unplanned significant architectural decision;
 a material deviation from approved requirements; or an unresolved blocker after
 reasonable investigation. Never bypass failing tests or silently weaken verification.
 The existing PLAN.md is the shared plan (the user's PLANS.md reference does not
-require a second plan). A prompt may cover one coherent group; record its scope and
-remaining groups. Keep progress updates and human-only acceptance handoffs.
+require a second plan). Groups are planning boundaries, not mandatory prompt or session boundaries.
+Record current scope and remaining groups; continue until intervention is required. Keep progress updates and human-only acceptance handoffs.
 
 After every edit, format C# with repository-local CSharpier 0.30.6, matching the
 user's VS Code save formatter: `dotnet tool restore`, then
