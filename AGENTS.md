@@ -1,20 +1,25 @@
 # SDK conventions
 
-Checkpoint workflow (user instruction, 2026-11-16): work through ready checkpoints and groups
-sequentially, respecting dependencies. Read each checkpoint's
-requirements and acceptance criteria; implement it, add/update meaningful tests,
-run all required verification, fix failures, and review the diff for correctness,
-regressions and security before committing. Commit completed checkpoints locally
-without asking for confirmation, update the shared PLAN.md with status, commands,
-results and remaining gates, then continue automatically across ready groups.
-Do not push unless the user explicitly requests it. This supersedes the earlier
-per-checkpoint commit/push approval rule. Stop only for required human credentials,
-permissions or external decisions; an unplanned significant architectural decision;
-a material deviation from approved requirements; or an unresolved blocker after
-reasonable investigation. Never bypass failing tests or silently weaken verification.
-The existing PLAN.md is the shared plan (the user's PLANS.md reference does not
-require a second plan). Groups are planning boundaries, not mandatory prompt or session boundaries.
-Record current scope and remaining groups; continue until intervention is required. Keep progress updates and human-only acceptance handoffs.
+Checkpoint workflow (user instruction, 2026-11-18): implement one manually
+triggered batch of 3–5 related steps, scoped to take no more than 1–2 hours including
+implementation, required tests, formatting, review and local commits. Split large
+milestones at safe reviewable boundaries before starting; reserve verification time.
+Continue within that batch without intermediate confirmation, then stop for review
+and wait for the user's instruction before another batch. Stop earlier for required
+credentials/permissions/external decisions, an unplanned significant architectural
+decision, material scope deviation or a blocker unresolved after reasonable investigation.
+If the budget becomes unrealistic, record a safe partial handoff rather than expanding
+scope, weakening verification or claiming an unfinished checkpoint complete.
+Read acceptance criteria, implement, add/update meaningful tests, run required checks,
+fix failures and review correctness/regressions/security before each verified local
+commit. Do not push unless explicitly requested. Preserve failed-run evidence.
+Start at [PLAN.md](../PLAN.md), then read current status, the selected feature,
+its applicable global constraints and actual dependency contracts only. Do not
+recursively read all plan/history files or PLAN.original.md. Update feature tasks,
+current status and the relevant evidence; recover context from these plus Git state.
+See [working method](../docs/plan/working-method.md). This supersedes all older
+automatic-continuation instructions across groups. Original numbered groups are
+milestones, not prompt durations. Do not edit TODO_human_dev.md unless asked.
 
 After every edit, format C# with repository-local CSharpier 0.30.6, matching the
 user's VS Code save formatter: `dotnet tool restore`, then
