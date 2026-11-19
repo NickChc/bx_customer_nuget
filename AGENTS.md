@@ -24,8 +24,15 @@ milestones, not prompt durations. Do not edit TODO_human_dev.md unless asked.
 After every edit, format C# with repository-local CSharpier 0.30.6, matching the
 user's VS Code save formatter: `dotnet tool restore`, then
 `dotnet csharpier <edited paths>`. Do not substitute dotnet format. Before a
-checkpoint run `dotnet csharpier src tests --check --no-cache`, then the full CI
-locked restore, Release tests and pack. Supported JSON/Markdown/YAML uses
+checkpoint check edited C# paths with `--check --no-cache` and follow
+[change-based verification](../docs/plan/verification-policy.md) (user correction,
+2026-11-19), superseding older full-suite requirements. Build affected projects and
+test changed serialization/error/cancellation/retry behavior plus direct consumers.
+Run Release pack/onboarding when package or HTTP contracts are affected; full
+regression for broad/uncertain impact and integration/release checkpoints. Filtered
+checks are valid with an impact rationale. Documentation-only changes need no
+application build/tests/pack. Keep CI gates, runner settings, assertions and deadlines
+unchanged; preserve failures and report scope/results honestly. Supported JSON/Markdown/YAML uses
 Prettier 3.7.4 with this repository's default `.prettierrc.json`, for example
 `npx --yes prettier@3.7.4 --write <edited paths>`. Exclude secrets, generated
 output and unsupported formats. Inspect changes and verify a second pass is
@@ -41,4 +48,4 @@ Customer IDs and event IDs are project-scoped through credentials. Preserve iden
 
 Expose asynchronous APIs with CancellationToken. Name const fields, local const declarations and constant-like static readonly fields in UPPER_SNAKE_CASE. Never generate event IDs inside retry loops, retry POST blindly, log keys, follow redirects with credentials, or suppress HTTP failures. Use HttpClientFactory integration and a typed exception preserving status. Keep JSON names camelCase to match the API. Follow semantic versioning; document breaking changes.
 
-Run `dotnet test BiznetX.Customer.slnx` and `dotnet pack src/BiznetX.Customer -c Release`. Docker builds a package artifact. Do not publish a package unless requested.
+Full regression command: `dotnet test BiznetX.Customer.slnx`; packaging command: `dotnet pack src/BiznetX.Customer -c Release`. Select them using the change-based policy rather than for every edit. Docker builds a package artifact. Do not publish a package unless requested.
