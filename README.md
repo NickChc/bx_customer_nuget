@@ -32,6 +32,15 @@ Customer attributes merge at the top level; explicit null attribute values remov
 
 The SDK does not silently retry. Use a durable application outbox; reuse the event ID, timestamp and properties on timeouts, 429s and transient server errors. Inspect `CustomerApiException.StatusCode`, `Detail`, and `TraceId`. Do not retry validation/authentication/conflict responses unchanged. A permanently fenced customer returns HTTP 410 for identify and event submission, including old event retries. Stop reporting that identity; retrying or choosing a new event UUID does not remove the block. The SDK preserves 410 in `CustomerApiException` and performs no automatic retry. The backend processing-fence foundation is internal; owner erasure submission and payload scrubbing are not available yet.
 
+## Application integration guide
+
+In your BX Customer website, open **Documentation → Application integration**
+(`/docs/application-integration`). It covers workspace/key setup, server addresses,
+a synthetic record-only workflow test, durable consumer delivery, retries and the
+BX Gamble staging example. It is included with the frontend release containing this
+guide; updating the SDK alone does not deploy the website. Consumers implement the
+integration in their own projects; this SDK has no automatic registration/login hook.
+
 ## Build, test and package
 
 Format C# after editing with the repository-local tool matching VS Code:

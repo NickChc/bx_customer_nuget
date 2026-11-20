@@ -1,3 +1,9 @@
+Consumer integration policy (user instruction, 2026-11-20): edit only BX Customer.
+The user implements integrations in other projects; inspect consumer code read-only
+when needed, never edit it. Maintain the website's Application integration guide
+and related examples/tests whenever an affected API/SDK/key/retry/workflow/deployment
+contract changes; see [documentation ownership](../frontend/docs/application-integration.md). Keep one canonical guide.
+
 Delivery policy (user correction, 2026-11-20): follow the
 [practical delivery priorities](../docs/plan/working-method.md#delivery-priorities). Prioritize controlled consumer integration,
 demonstrated defects and essential missing behavior. Group related work into useful
