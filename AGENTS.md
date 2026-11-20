@@ -1,3 +1,13 @@
+Delivery policy (user correction, 2026-11-20): follow the
+[practical delivery priorities](../docs/plan/working-method.md#delivery-priorities). Prioritize controlled consumer integration,
+demonstrated defects and essential missing behavior. Group related work into useful
+feature slices within the existing review/time limits; keep evidence concise and
+avoid repetitive verification/documentation. Prefer existing patterns and the simplest
+maintainable implementation. Optimize for measured bottlenecks or explicit workload
+requirements; avoid speculative abstractions, tuning and premature optimization.
+Preserve required security, atomic multi-instance behavior, bounds and recovery.
+Existing acceptance/CI gates and explicit push/external-action permissions remain.
+
 # SDK conventions
 
 Checkpoint workflow (user instruction, 2026-11-18): implement one manually
