@@ -1,13 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <PackageId>BiznetX.Customer</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Authors>BiznetX</Authors>
     <Description>Typed client for the BX Customer ingestion API.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>package-icon.png</PackageIcon>
+    <PackageProjectUrl>https://github.com/NickChc/bx_customer_nuget</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NickChc/bx_customer_nuget.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
     <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <None Include="../../package-icon.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,19 @@
 # BiznetX.Customer
 
-Typed .NET 8+ client for BX Customer's v1 customer/event ingestion API. This package does not reference backend projects.
+Send customer profiles and application events to BX Customer from a .NET 8 or later backend. Use `IdentifyAsync` to create or update a customer and `TrackAsync` to report an event for that customer. BX Customer evaluates workflows after ingestion. An event receipt confirms persistence or deduplication.
+
+## Install and configure
+
+Add the package from a NuGet source that contains `BiznetX.Customer`. To try it directly from this repository, build a local package with the commands under **Build from source**, then run this in your application project:
+
+```sh
+dotnet nuget add source "/absolute/path/to/bx_customer_nuget/artifacts" --name bx-customer-local
+dotnet add package BiznetX.Customer --version 0.1.1
+```
+
+Register the local source once. Keep nuget.org or your existing dependency mirror configured for the package's Microsoft dependencies.
+
+In ASP.NET Core, set `BxCustomer__BaseAddress` to your installation's API base URL, including the trailing slash, and supply `BxCustomer__ApiKey` from your server's secret store. Use a project integration key for the destination workspace. Use HTTPS outside loopback and keep the key on the server.
 
 ```csharp
 using BiznetX.Customer;
@@ -10,58 +23,55 @@ builder.Services.AddBxCustomer(options =>
     options.BaseAddress = new Uri(builder.Configuration["BxCustomer:BaseAddress"]!);
     options.ApiKey = builder.Configuration["BxCustomer:ApiKey"]!;
 });
-
-// Inject ICustomerClient. Identify before tracking events.
-await customerClient.IdentifyAsync("player-42", new IdentifyCustomerRequest(
-    "person@example.test",
-    new Dictionary<string, object?> { ["language"] = "en" }), cancellationToken);
-
-// Persist this ID in your application's outbox; reuse the exact request on retry.
-var eventId = Guid.NewGuid();
-await customerClient.TrackAsync(new TrackEventRequest(
-    eventId, "player-42", "casino.deposit.completed",
-    DateTimeOffset.UtcNow,
-    new Dictionary<string, object?> { ["amountMinor"] = 2500, ["currency"] = "EUR" }), cancellationToken);
 ```
 
-Custom event names are supported; the casino name above is just an example, not a built-in trigger. IDs and event names accept letters, digits, `_ . : @ -`, must begin with a letter/digit, and have a maximum length of 128.
+## Identify a customer and track an event
 
-Base URLs must end in `/` and use HTTPS except on loopback during local development. Configuration is validated on resolution/startup. Keys stay in the HTTP Authorization header. Redirect following is disabled. Keep credentials in your environment/secret manager.
+Inject `ICustomerClient` into your application service. Use a stable customer ID from your application. The following example sets a profile attribute and reports a custom event. Pass the event UUID and original occurrence time saved with the business operation.
 
-Customer attributes merge at the top level; explicit null attribute values remove those keys. Omitted attributes/email remain unchanged. Email clearing is not yet supported. JSON objects are limited to 16 KiB and 100 top-level properties. Event IDs are unique per project. Repeating the same payload returns `Duplicate = true`; changing content returns HTTP 409. Identify updates are safe to retry as assignments, but concurrent updates to the same attribute use last-write-wins.
+```csharp
+using BiznetX.Customer;
 
-The SDK does not silently retry. Use a durable application outbox; reuse the event ID, timestamp and properties on timeouts, 429s and transient server errors. Inspect `CustomerApiException.StatusCode`, `Detail`, and `TraceId`. Do not retry validation/authentication/conflict responses unchanged. A permanently fenced customer returns HTTP 410 for identify and event submission, including old event retries. Stop reporting that identity; retrying or choosing a new event UUID does not remove the block. The SDK preserves 410 in `CustomerApiException` and performs no automatic retry. The backend processing-fence foundation is internal; owner erasure submission and payload scrubbing are not available yet.
+static async Task ReportPurchaseAsync(
+    ICustomerClient client, string customerId, Guid eventId,
+    DateTimeOffset occurredAt, CancellationToken cancellationToken)
+{
+    await client.IdentifyAsync(customerId, new IdentifyCustomerRequest(
+        Attributes: new Dictionary<string, object?> { ["language"] = "en" }),
+        cancellationToken);
 
-## Application integration guide
-
-In your BX Customer website, open **Documentation → Application integration**
-(`/docs/application-integration`). It covers workspace/key setup, server addresses,
-a synthetic record-only workflow test, durable consumer delivery, retries and the
-BX Gamble staging example. It is included with the frontend release containing this
-guide; updating the SDK alone does not deploy the website. Consumers implement the
-integration in their own projects; this SDK has no automatic registration/login hook.
-
-## Build, test and package
-
-Format C# after editing with the repository-local tool matching VS Code:
-
-```powershell
-dotnet tool restore
-dotnet csharpier src tests
-dotnet csharpier src tests --check --no-cache
+    await client.TrackAsync(new TrackEventRequest(
+        eventId, customerId, "purchase.completed", occurredAt,
+        new Dictionary<string, object?> { ["amountMinor"] = 2500, ["currency"] = "EUR" }),
+        cancellationToken);
+}
 ```
 
-CSharpier is pinned to 0.30.6 with four-space indentation, a 100-column target
-and LF line endings. Supported Markdown/JSON/YAML uses Prettier 3.7.4 with the
-repository's default configuration; pass explicit edited paths, for example
-`npx --yes prettier@3.7.4 --write README.md`. Exclude generated output and secrets.
-The SDK's existing constant naming convention remains unchanged.
+Customer IDs and event names must start with an ASCII letter or digit and can contain up to 128 letters, digits, or `_ . : @ -`. Attributes and event properties each accept a JSON object up to 16 KiB with up to 100 top-level keys. Identify merges top-level attributes. An explicit null attribute value removes that key. Omitting attributes or email preserves existing values.
 
-```powershell
-dotnet restore BiznetX.Customer.slnx --locked-mode
-dotnet test BiznetX.Customer.slnx --no-restore
+## Handle retries in your application
+
+Store the event UUID, timestamp and complete payload in your application's durable outbox before the first send. The SDK makes one application-level attempt per call. Inspect `CustomerApiException.StatusCode`, `Detail` and `TraceId` for HTTP failures.
+
+| Result                                       | What to do                                                                                         |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Successful event receipt                     | Mark the event delivered, including when `Duplicate` is true.                                      |
+| Timeout, lost response, 429 or transient 5xx | Retry with backoff using the original UUID and identical payload.                                  |
+| 404 while tracking                           | Verify the workspace and identify the customer there before retrying.                              |
+| 409                                          | The UUID already identifies different content. Investigate the outbox entry.                       |
+| 410                                          | The customer has a permanent processing block. Stop sending profiles and events for that identity. |
+| Validation or authentication error           | Correct the input or credentials before retrying.                                                  |
+
+In your BX Customer website, open **Documentation → Application integration** (`/docs/application-integration`) for key setup, workspace selection, a synthetic workflow smoke test and the full consumer delivery guidance.
+
+## Build from source
+
+With the .NET 8 SDK or later, run these commands from the repository root:
+
+```sh
+dotnet restore tests/BiznetX.Customer.Tests --locked-mode
+dotnet test tests/BiznetX.Customer.Tests -c Release --no-restore
 dotnet pack src/BiznetX.Customer -c Release --no-restore -o artifacts
-docker build --output type=local,dest=artifacts/docker .
 ```
 
-Docker produces a NuGet artifact, not a long-running service. Package publication to the GitLab registry is a separate release step.
+The package, including this README and its icon, is written to `artifacts/`. The Docker build also produces a package: `docker build --output type=local,dest=artifacts/docker .`.

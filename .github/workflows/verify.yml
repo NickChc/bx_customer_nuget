@@ -1,0 +1,26 @@
+name: Verify SDK
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/dotnet/sdk:8.0
+    steps:
+      - uses: actions/checkout@v4
+      - run: dotnet tool restore
+      - run: dotnet csharpier src tests --check --no-cache
+      - run: dotnet restore tests/BiznetX.Customer.Tests --locked-mode
+      - run: dotnet test tests/BiznetX.Customer.Tests --no-restore -c Release --logger trx --results-directory TestResults
+      - run: dotnet pack src/BiznetX.Customer -c Release --no-restore -o artifacts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sdk-verification
+          path: |
+            TestResults/
+            artifacts/
+          retention-days: 7
